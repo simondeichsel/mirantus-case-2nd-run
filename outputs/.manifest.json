@@ -1,0 +1,30 @@
+{
+  "1": {
+    "data/README.md": "390935dc76a8074993238de4537e5bebb463915289850370ca5aa64675026eea",
+    "data/screenings.csv": "41c2475a9aa0a5543bb164b5a8f1e28d6ccc9155505b28bf9e8fb9626bb3606c",
+    "scripts/analyze.py": "43f9a1edf6ecbac3942469b2fb0ebbbe0b4616b593c980d926ce0f1e7fed1cdb"
+  },
+  "2": {
+    "data/customer-journey.md": "f454c5e35c199bd1616e6e8480610f53e41d83465b6dbb3fecdd0c5f4bc73460",
+    "data/interviews/01-customer-leipzig.md": "7fa1d9c863625d2877d743389c45af69e9cfd77b9ee85a7179cbaf7253f89f3d",
+    "data/interviews/02-customer-berlin.md": "45a9f6762b0ea38bd2fddd5e6df5938704126c83791b313f55d567b95ec3f86d",
+    "data/interviews/03-optician-bavaria.md": "3eb3e9f629318b54773fff8aac26935bf8516aff00ded418d0f3367a3956f88d",
+    "data/interviews/04-ophthalmologist.md": "48bf8cc89402fab878242433f657cb6a2859e87e56b435209a8cd09c0d7f1de0",
+    "data/optician-survey.md": "95f255f7c77880e6b7abf9834f791110a823f146a883b8da3540108b186479af"
+  },
+  "3": {
+    "data/constraints.md": "48fcc7b6553b33371a59e2355d76eb5b57350ed07a7fe67f4fdc0b028067af04",
+    "outputs/01-data-analysis.md": "36da7f6fdf35424135ceab76f315d93a8f7eb418e4a7bf2fef88ad854fe11921",
+    "outputs/01-data-interpretation.md": "5dc1c7b43b3b900e34c85fa2bf2fb2639cf64a26593bf79796be4bae48f3957d",
+    "outputs/02-qual-evidence.md": "bbdc603ed348833d1952ec1e687270cd16d3d6957a12d878907c97c4918677cd"
+  },
+  "4": {
+    "data/constraints.md": "48fcc7b6553b33371a59e2355d76eb5b57350ed07a7fe67f4fdc0b028067af04",
+    "outputs/03-insights.md": "f847a257535af0386cb75e778eaf9388ff0256f6c12b1660305238d8197c953d"
+  },
+  "5": {
+    "data/constraints.md": "48fcc7b6553b33371a59e2355d76eb5b57350ed07a7fe67f4fdc0b028067af04",
+    "data/customer-journey.md": "f454c5e35c199bd1616e6e8480610f53e41d83465b6dbb3fecdd0c5f4bc73460",
+    "outputs/04-decision-memo.md": "dfecda888008afea47cb5c2b7959a1a98b27299f87eec23479465e6dc4749147"
+  }
+}
