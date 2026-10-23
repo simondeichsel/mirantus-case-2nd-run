@@ -44,7 +44,8 @@ How to apply it:
 ## Evidence rules
 
 - **Tag every claim with its source:** `[CSV]`, `[INT-01]`…`[INT-04]`, `[SURVEY-n]` (answer
-  number), `[JOURNEY]`, `[CONSTRAINTS]`. A claim without a source is tagged `[ASSUMPTION]`.
+  number), `[JOURNEY]`, `[CONSTRAINTS]`. A claim without a source is tagged `[ASSUMPTION]`; a
+  target we set is a decision, not data, and is tagged `[TARGET]`.
 - **Numbers come only from the analysis output** written by the analysis script. Never compute
   or type a number in prose. If a number is missing, extend the script and rerun it.
 - **Unequal follow-up time (right-censoring).** First screenings span 2025; the export is from
@@ -89,9 +90,27 @@ The decision memo is max. 1 page (≈ 500 words, hard limit 600). Narrow beats b
 - Never invent data, quotes, people or numbers.
 - Never show customer-facing copy that has not been checked against `data/constraints.md`.
 - Never recommend more than one thing as "the recommendation"; alternatives go in the cut list.
-- Never move past a checkpoint without Simon's answer.
+- Never move past a checkpoint without Simon's answer in interactive mode, or without logging
+  the decision in auto mode.
 - Never write `VERDICT.md`. Simon writes his verdict himself.
 
 ## How the run works
 
-_To be defined in step 2 (run design): steps, subagents, self-checks and checkpoints._
+The workflow is the `run-case` skill (`/run-case [step] [auto]`); the README explains how to
+rerun. In short:
+
+| Step | Output | Done by |
+|---|---|---|
+| 1 Data analysis | `outputs/01-data-analysis.md`, `01-data-interpretation.md` | `data-analyst` subagent |
+| 2 Qualitative evidence | `outputs/02-qual-evidence.md` | `qual-researcher` subagent |
+| 3 Insight synthesis + framings | `outputs/03-insights.md` | main session |
+| 4 Decision memo | `outputs/04-decision-memo.md` | main session, `decision-memo` skill |
+| 5 Prototype and mail flow | `outputs/05-prototype-spec.md` → Claude Design | main session |
+
+- **Interactive mode** (default): walkthrough of the analysis after steps 1–2; **CP1** after
+  step 3 (which framing); **CP2** after step 4 (sign off recommendation, cut list, metric). Ask
+  with AskUserQuestion.
+- **Auto mode**: no stops. Decisions at CP1 and CP2 are made by Claude, reusing Simon's earlier
+  decisions where the inputs still support them, and logged in `outputs/CHECKPOINTS.md`.
+- **Self-checks, in both modes:** after every step run `python3 scripts/check_outputs.py` and fix
+  every failure. Before each checkpoint, run the `reviewer` subagent and fix its BLOCKING findings.
