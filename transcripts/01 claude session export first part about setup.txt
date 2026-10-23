@@ -1,0 +1,1135 @@
+
+❯ <browser_instruction># Claude in Chrome browser automation
+
+  You have access to browser automation tools (mcp__claude-in-chrome__*) for
+  interacting with web pages in Chrome. Follow these guidelines for effective
+  browser automation.
+
+  ## Loading deferred tools
+
+  If the mcp__claude-in-chrome__* tools are deferred (must be loaded via
+  ToolSearch before use), load every tool you expect to need in ONE ToolSearch
+  call — the select query accepts a comma-separated list — never one call per
+  tool. Start with the core set:
+
+  ToolSearch with query
+  "select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__naviga
+  te,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__read_page,mcp__clau
+  de-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__tabs_close_mcp"
+
+  Add task-specific tools to the same call when the task obviously needs them:
+  read_console_messages / read_network_requests for debugging, form_input for
+  forms, gif_creator for recordings, javascript_tool for page scripting.
+
+  ## GIF recording
+
+  When performing multi-step browser interactions that the user may want to
+  review or share, use mcp__claude-in-chrome__gif_creator to record them.
+
+  You must ALWAYS:
+  * Capture extra frames before and after taking actions to ensure smooth
+  playback
+  * Name the file meaningfully to help the user identify it later (e.g.,
+  "login_process.gif")
+
+  ## Console log debugging
+
+  You can use mcp__claude-in-chrome__read_console_messages to read console
+  output. Console output may be verbose. If you are looking for specific log
+  entries, use the 'pattern' parameter with a regex-compatible pattern. This
+  filters results efficiently and avoids overwhelming output. For example, use
+  pattern: "[MyApp]" to filter for application-specific logs rather than
+  reading all console output.
+
+  ## Alerts and dialogs
+
+  IMPORTANT: Do not trigger JavaScript alerts, confirms, prompts, or browser
+  modal dialogs through your actions. These browser dialogs block all further
+  browser events and will prevent the extension from receiving any subsequent
+  commands. Instead, when possible, use console.log for debugging and then use
+  the mcp__claude-in-chrome__read_console_messages tool to read those log
+  messages. If a page has dialog-triggering elements:
+  1. Avoid clicking buttons or links that may trigger alerts (e.g., "Delete"
+  buttons with confirmation dialogs)
+  2. If you must interact with such elements, warn the user first that this may
+  interrupt the session
+  3. Use mcp__claude-in-chrome__javascript_tool to check for and dismiss any
+  existing dialogs before proceeding
+
+  If you accidentally trigger a dialog and lose responsiveness, inform the user
+  they need to manually dismiss it in the browser.
+
+  ## Avoid rabbit holes and loops
+
+  When using browser automation tools, stay focused on the specific task. If
+  you encounter any of the following, stop and ask the user for guidance:
+  - Unexpected complexity or tangential browser exploration
+  - Browser tool calls failing or returning errors after 2-3 attempts
+  - No response from the browser extension
+  - Page elements not responding to clicks or input
+  - Pages not loading or timing out
+  - Unable to complete the browser task despite multiple approaches
+
+  Explain what you attempted, what went wrong, and ask how the user would like
+  to proceed. Do not keep retrying the same failing browser action or explore
+  unrelated pages without checking in first.
+
+  ## Tab context and session startup
+
+  IMPORTANT: At the start of each browser automation session, call
+  mcp__claude-in-chrome__tabs_context_mcp first to get information about the
+  user's current browser tabs. Use this context to understand what the user
+  might want to work with before creating new tabs.
+
+  Never reuse tab IDs from a previous/other session. Follow these guidelines:
+  1. Only reuse an existing tab if the user explicitly asks to work with it
+  2. Otherwise, create a new tab with mcp__claude-in-chrome__tabs_create_mcp
+  3. If a tool returns an error indicating the tab doesn't exist or is invalid,
+  call tabs_context_mcp to get fresh tab IDs
+  4. When a tab is closed by the user or a navigation error occurs, call
+  tabs_context_mcp to see what tabs are available</browser_instruction>
+
+❯ Let's start from scratch. For a job interview, I want to do this challenge. I
+  know that you can do all of this in one go (I did this already), but now I
+  want to go more step by step and understand your reasoning and the material
+  better.
+
+  let's focus on the deliverables, as stated in the task at end (how to
+  submit). Let's create them together, one at a time - so I have full
+  transparency and can see what you are doing and correct course or ask
+  questions.
+
+  You can create a new repository, don't reuse anything from the old runs.
+
+  ______________
+  How to submit
+  At least 24 hours before your review session, send us a link to your own
+  repository (public, or private with access for us). Please don't open pull
+  requests or issues here. It should contain:
+
+   your setup: CLAUDE.md, agents, skills or workflow files, and a README on how
+  to rerun it
+   what the run produced: insight synthesis, decision memo, prototype link
+   the exported Claude Code transcript
+   your own verdict (max. half a page)
+  Stop at 2 hours. If you ran out of time, write down what you would have done
+  next — that counts too.
+  _________________
+
+  Here is the task:
+  https://github.com/Mirantus-Health/product-case-study/blob/main/README.md
+
+⏺ I'll start by reading the task itself, so we both work from the same brief.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I have the brief. Before creating anything, here's how I read it and what I
+  propose. Nothing has been written yet.
+
+  What the task actually asks for
+
+  The four submission items map onto the four task steps:
+
+  ┌───────────────────────────────┬────────────────┬────────────────────────┐
+  │          Deliverable          │   Comes from   │     Who writes it      │
+  ├───────────────────────────────┼────────────────┼────────────────────────┤
+  │                               │ Steps 1–2      │                        │
+  │ 1. Setup: CLAUDE.md, agents,  │ (brief +       │ Claude drafts, you     │
+  │ skills/workflow, rerun README │ design the     │ decide                 │
+  │                               │ run)           │                        │
+  ├───────────────────────────────┼────────────────┼────────────────────────┤
+  │ 2. Run outputs: insight       │ Step 3 (the    │ Claude, stopping at    │
+  │ synthesis, decision memo,     │ run)           │ your checkpoints       │
+  │ prototype link                │                │                        │
+  ├───────────────────────────────┼────────────────┼────────────────────────┤
+  │ 3. Exported transcript        │ /export at the │ You (one command)      │
+  │                               │  end           │                        │
+  ├───────────────────────────────┼────────────────┼────────────────────────┤
+  │                               │                │ You only. The brief    │
+  │ 4. Verdict (max. ½ page)      │ Step 4         │ says "write this part  │
+  │                               │                │ yourself"              │
+  └───────────────────────────────┴────────────────┴────────────────────────┘
+
+  Two things in the brief matter more than they first look:
+
+  - "We change one input and ask you to rerun it live." So the setup is the real
+    deliverable, more than the outputs. It has to be rerunnable step by step,
+    so that changing (say) constraints.md means rerunning only the affected
+    steps. That's a design decision we should make deliberately in
+    deliverable 1.
+  - "Don't do the product work yourself — set Claude up… and judge." That's why
+    we're doing this step by step: your judgement at the checkpoints and in the
+    verdict is what gets evaluated.
+
+  Proposed order
+
+  1. New repo + data pack. Fresh directory (proposed: ~/gits/mirantus-case),
+     clone the case data into data/ read-only, git init. Nothing copied from the
+     old run.
+  2. Deliverable 1a: CLAUDE.md. I draft it section by section (goal, users,
+     constraints, what good looks like, never-do list). Before that I read the
+     data pack, so the brief rests on the real inputs rather than on my guesses.
+  3. Deliverable 1b: the run design. We decide together on the steps, which
+     subagents, where Claude checks itself, and where it stops to ask you. Then
+     I write the files and the README.
+  4. Deliverable 2: the run. One step at a time, stopping at each checkpoint.
+  5. Prototype in Claude Design. Its link goes into the repo.
+  6. Your verdict + transcript export. I can give you notes on what I saw go
+     wrong, but you write the verdict itself.
+
+  One thing to watch: the brief says to stop at 2 hours. Going step by step with
+  explanations will take longer than that. You might want to note in the
+  verdict how long it took, or keep the explanations short where you don't need
+  them.
+
+  First question before I create anything: is ~/gits/mirantus-case a good
+  location, and should it become its own GitHub repo now (private, pushed later)
+  or stay local until you're happy with it? If you're fine with a local repo at
+  that path, say "go" and I'll set it up, read the data pack, and give you a
+  short summary of what's in it before we start on CLAUDE.md.
+
+❯ yes, let's start local and push to github later, let's call the folder
+  mirantus-case-2nd-run
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Repo created. Now I'll read the whole data pack. It's small, and I want to
+  brief Claude from what's actually in it.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ The repo is at ~/gits/mirantus-case-2nd-run. It has the data pack in data/,
+  unchanged, and the task brief saved as CASE.md. Both are committed as the
+  baseline, so any later edit to an input will show up in git, which will help
+  during the live rerun.
+
+  What's in the data pack
+
+  I've read every file. The 9,000-row CSV I've only looked at structurally;
+  analysing it belongs to the run. These are the points that should shape the
+  brief:
+
+  Traps in the data that Claude must be told about, or it will walk into them:
+  - Right-censoring. First screenings run through all of 2025 and the export
+    date is 30.09.2026. A customer screened in December 2025 had only about 9
+    months to come back, while a January customer had about 20. A naive "% who
+    came back" mixes these and understates the true rate. The KPI needs a fixed
+    observation window.
+  - optician_follow_up is self-reported and probably tangled up with store type
+    and consent. Any "phone follow-up doubles returns" finding is an
+    association, not proof that calling works.
+  - The report is German-only, but preferred_language includes en/tr/ru/ar/pl.
+    That's a testable segment.
+  - report_opened and marketing_consent are the two levers the CSV can actually
+    show.
+
+  Tensions in the qualitative material. These are the interesting part:
+  - Customer 02 wants a reminder "but not from the optician… from whoever has my
+    results". The constraints and Optician 03 say the opposite: the customer
+    belongs to the optician. This is a direct clash, and Claude should name it
+    rather than smooth it over.
+  - Among opticians: survey #3 and Interview 03 want "a list, we'll call".
+    Survey #9 says "we have no time to call, it must be automatic", and #4 says
+    "no mails from Mirantus to my customers".
+  - Survey #6 ("if the report says next screening in 12 months, people believe
+    it") fits Interview 04 almost exactly: the ophthalmologist would fill in an
+    interval field "in five seconds" if the form had one. That's the only route
+    by which a personal interval can legally appear at all.
+  - Customer 01: "Warum? War doch alles in Ordnung" ["Why? Everything was
+    fine."]. Ophthalmologist: "It's the 'unremarkable' 60-year-olds who
+    disappear." Same mechanism, seen from two sides.
+
+  Constraints that will catch weak outputs: any interval in marketing copy
+  counts as a medical statement. Without consent, only 3 service e-mails are
+  allowed. Everything has to carry the optician's name. No CRM integration.
+
+  Proposed outline for CLAUDE.md
+
+  1. Role and goal. Claude is the analyst/PM partner, and you own the decision.
+     The goal, stated precisely: return at the interval the ophthalmologist
+     recommends, not "more screenings".
+  2. Users. Customer, optician, ophthalmologist, Mirantus: what each wants and
+     which source covers them. Plus the rule that a design opticians would block
+     counts as a failed design.
+  3. Hard constraints. The four from constraints.md, plus "if an input file
+     changes, the file wins, and say what changed". That rule is there for the
+     live rerun.
+  4. Evidence rules. A source tag on every claim. Numbers only from a script,
+     never typed into prose. Right-censoring. Correlation ≠ effect. n on every
+     rate. Qualitative material explains mechanisms but can't size anything.
+  5. What good looks like. For each deliverable: synthesis, memo (≤1 page),
+     prototype.
+  6. Never. Short and concrete: fear copy, Mirantus-branded marketing, work for
+     the optician, and so on.
+  7. How the run works. A pointer to the workflow, checkpoints and self-checks.
+     We'll design that part together in the next step.
+
+  Two decisions for you before I write it
+
+  1. Should the brief stay neutral on the answer? The interval-field → report →
+     optician-branded reminder route is already visible from the inputs. I'd
+     keep it out of CLAUDE.md, so the run has to find it from the evidence and
+     doesn't just obey the brief. A reviewer will ask "did Claude find this or
+     did you tell it?" My recommendation: neutral.
+  2. How hard should the constraints be? I'd copy them almost word for word from
+     constraints.md and make the file the source of truth. Rephrasing them
+     risks drift when they change one input live. My recommendation: paraphrase
+     lightly, and always defer to the file.
+
+  If you agree with both, I'll write CLAUDE.md next and walk you through it
+  section by section.
+
+❯ My comments:
+
+  the line 6 never ends with "and so on" - that is vague. In "never" you can
+  refer to the constraints again. why copying the constraints word for word?
+  Can't you link or refer to them - they might change in the 2nd run!
+
+  And a general comment about what I would like as output: A clear and
+  pragmatic recommendation for the first steps that we should build for
+  increasing retention. The full prototype and mail flow is required, too. But
+  I feel it is more important to clearly conclude the one thing we are
+  recommending and how we are measuring success.
+
+⏺ Both points are right. Restating the constraints would create a second copy
+  that silently goes stale the moment they change constraints.md in the live
+  rerun. So CLAUDE.md will point to the file and tell Claude how to use it,
+  without repeating its content. Your output priority goes to the top of "what
+  good looks like".
+
+⏺ Write(~/gits/mirantus-case-2nd-run/CLAUDE.md)
+  ⎿  Wrote 91 lines to ~/gits/mirantus-case-2nd-run/CLAUDE.md
+       1 # CLAUDE.md — Mirantus return-rate case
+       3 You are the product team's analyst and PM partner on one problem
+         . Simon (Senior PM) owns the
+         ints. The task brief is
+       5 `CASE.md`. Write in English; quote German verbatim and add a tra
+       6
+       7 ## The goal
+       9 **More screened customers come back for their next screening, at
+          the interval the evaluating
+         general: a 30-year-old returning
+     … +128 lines (ctrl+o to expand)
+
+⏺ I've written CLAUDE.md (../mirantus-case-2nd-run/CLAUDE.md). It isn't
+  committed yet, so you can review it first. The choices worth checking:
+
+  Constraints are referenced, not copied. The section now only says: read
+  data/constraints.md fresh before any step that produces a recommendation, copy
+  or prototype. Treat every rule as hard. Check each piece of copy against each
+  section of the file. If the file has changed since the last run, name the
+  changed rule and its consequence at the top of each regenerated output. That
+  last rule is aimed squarely at the live rerun. The one place I still name the
+  four topics (consent, medical, relationship, capacity) is so Claude knows what
+  the file is about. I don't state the rules themselves.
+
+  The Never list is now 6 concrete items with no "and so on". It holds only
+  things the constraints file doesn't already cover: don't touch inputs, don't
+  invent, no unchecked copy, only one recommendation, don't skip checkpoints,
+  don't write your verdict. The constraint-related "nevers" (no fear copy etc.)
+  live in the file itself, and the list points there.
+
+  Your output priority is now the ordering of "What good looks like":
+  1. One recommendation + one metric, with a full definition: numerator,
+     denominator, cohort, window, baseline, target, guardrails, cut list,
+     trade-off.
+  2. The 2-week test, now including "what result would make us change course".
+  3. Synthesis.
+  4. Prototype + full mail flow, explicitly covering consented and non-consented
+     customers plus one non-German example.
+
+  One thing to check: in the goal section I wrote "a 65-year-old with an
+  unremarkable result disappearing is the problem". That sharpens the goal, but
+  it's close to an insight the run should find for itself (it's straight from
+  [INT-04]). It breaks my own "keep the brief neutral" rule a little. I'd lean
+  towards keeping it, because it defines the goal rather than the solution, but
+  you could just as well cut it to "not 'more screenings' in general".
+
+  The last section is a deliberate placeholder for the next step. Shall I commit
+  this as-is (or with that line changed), and then move on to designing the
+  run: steps, subagents, self-checks and where Claude stops to ask you?
+
+❯ Why do you think we should only focus on elderly people returning more
+  reliably? For mirantus business, also young people returning would bring
+  money. Yes, probably it is harder to motivate them, but we can leave it up to
+  the doctor to decide when they should return - maybe for them a 3 year
+  window or more would be fine. But better trying this than giving up upfront
+  or changing the goal because some qualitative feedback.
+
+  And one thing: Right-censoring, I don't understand the term. I understand
+  your point about the fixed observation window, but not why you call it right
+  censoring
+
+⏺ You're right on the first point, and I overreached. The goal is "return at the
+  interval the ophthalmologist recommends", for every customer. A 30-year-old
+  who comes back after 3 years because the doctor said 3 years is a success, and
+  revenue too. I had turned one interview quote into a narrowing of the goal,
+  which is exactly what the evidence rules say Claude must not do. Where the
+  problem is biggest is a question for the analysis to answer, not for the
+  brief.
+
+  That raises a point the run will have to deal with. The data only shows
+  returns within at most about 21 months (January 2025 to the 30.09.2026
+  export). If the doctor recommends 2–3 years for younger customers, a return in
+  this dataset can't even be due for them yet. So a single "return rate" would
+  count them as failures by construction. The metric has to be "returned by the
+  date that was due for that customer", and for long intervals we simply can't
+  observe it yet. I'll put that into the brief as a rule, without saying what
+  the answer is.
+
+  Right-censoring, in plain words: the term comes from survival analysis.
+  Picture each customer as a timeline running left to right, from the first
+  screening to the export date. If someone hasn't returned by the export date,
+  we don't know whether they never will or just haven't yet. Their story is cut
+  off ("censored") at the right edge of the timeline. Customers screened late in
+  2025 are cut off sooner, so they look worse even if they behave the same. The
+  fixed observation window is the fix: compare everyone over the same N months
+  that all of them have fully had. You're also right that jargon shouldn't do
+  the explaining, so I'll describe the problem in the brief and keep the term
+  only in brackets.
+
+⏺ Update(~/gits/mirantus-case-2nd-run/CLAUDE.md)
+  ⎿  Added 4 lines, removed 3 lines
+       7  ## The goal
+       8  
+       9  **More screened customers come back for their next screening, a
+          t the interval the evaluating
+      10 -ophthalmologist recommends for them.** Not "more screenings" in
+         - general: a 30-year-old returning                              
+      11 -every six months is not the goal; a 65-year-old with an unremar
+         -kable result disappearing is the                               
+      12 -problem.                                                       
+      10 +ophthalmologist recommends for them.** This applies to every cu
+         +stomer, of any age: the doctor                                 
+      11 +decides the interval, and a customer who returns after three ye
+         +ars because that was their                                     
+      12 +interval is a success. Do not narrow the goal to a segment up f
+         +ront; where the gap is biggest is                              
+      13 +for the analysis to show.                                      
+      14  
+      15  Leadership wants the return rate to become a core product metri
+          c. We need **one clear,
+      16  pragmatic recommendation for what one squad builds first**, and
+           how we will know it works. We do
+
+⏺ Update(~/gits/mirantus-case-2nd-run/CLAUDE.md)
+  ⎿  Added 8 lines, removed 3 lines
+      47    number), `[JOURNEY]`, `[CONSTRAINTS]`. A claim without a sour
+          ce is tagged `[ASSUMPTION]`.
+      48  - **Numbers come only from the analysis output** written by the
+           analysis script. Never compute
+      49    or type a number in prose. If a number is missing, extend the
+           script and rerun it.
+      50 -- **Right-censoring.** First screenings span 2025; the export i
+         -s from 30.09.2026, so late-2025                                
+      51 -  customers had less time to return. Never use the naive overal
+         -l return rate. Use a rate over a                               
+      52 -  fixed observation window that every included customer has ful
+         -ly had, and state the window.                                  
+      50 +- **Unequal follow-up time (right-censoring).** First screening
+         +s span 2025; the export is from                                
+      51 +  30.09.2026. A customer who has not returned may simply not ha
+         +ve returned *yet*, and late-2025                               
+      52 +  customers had less time than early ones. Never use the naive 
+         +overall return rate. Use a rate                                
+      53 +  over a fixed observation window that every included customer 
+         +has fully had, and state the                                   
+      54 +  window.                                                      
+      55 +- **Return is relative to the customer's interval.** A customer
+         + is only "late" once their                                     
+      56 +  recommended interval has passed. Intervals longer than the da
+         +ta can observe cannot be judged                                
+      57 +  from this export; say so instead of counting those customers 
+         +as non-returners.                                              
+      58  - **Correlation is not effect.** `optician_follow_up` is self-r
+          eported and likely confounded
+      59    with location type and consent. Write "associated with". Give
+           n for every rate; mark any cell
+      60    with n < 100 as directional.
+
+⏺ I'll remove the unverified claim about the customer being "mostly 40+, many
+  60+" since it came from memory rather than the actual data, and let the CSV's
+  age data speak for itself instead.
+
+⏺ Update(~/gits/mirantus-case-2nd-run/CLAUDE.md)
+  ⎿  Added 1 line, removed 1 line
+      20  
+      21  | User | What they want | Sources |
+      22  |---|---|---|
+      23 -| Customer (mostly 40+, many 60+, some non-German speakers) | R
+         -eassurance, little effort, a reason to come back | `data/interv
+         -iews/01`, `02`, `data/screenings.csv` |                        
+      23 +| Customer (all ages; some prefer a language other than German)
+         + | Reassurance, little effort, a reason to come back | `data/in
+         +terviews/01`, `02`, `data/screenings.csv` |                    
+      24  | Optician (chain store, independent, mobile unit) | Store visi
+          ts and glasses sales, ownership of "their" customer, no extra w
+          ork | `data/interviews/03`, `data/optician-survey.md` |
+      25  | Evaluating ophthalmologist | Medically sound intervals, no fe
+          ar | `data/interviews/04` |
+      26  | Mirantus | Return rate as a product metric, within contract a
+          nd law | `CASE.md`, `data/constraints.md` |
+
+⏺ I changed three things in CLAUDE.md (../mirantus-case-2nd-run/CLAUDE.md):
+
+  - The goal now covers every customer. It no longer narrows to older customers.
+    The analysis decides where the gap is biggest.
+  - The evidence rule describes the follow-up-time problem in plain words.
+    "Right-censoring" now only appears in brackets.
+  - A new rule: whether someone returned is judged against their own due date.
+    If an interval is longer than the data can show, Claude has to say so rather
+    than count those customers as failures.
+
+  I also removed the age description of customers from the users table. I'd
+  written it from memory, not from this data.
+
+  Shall I commit, and then start designing the run?
+
+❯ yes, let's move on now
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've committed CLAUDE.md. Here's my proposal for the run design. I haven't
+  written any files yet.
+
+  The guiding idea: each step is a pure function of named inputs
+
+  The live rerun is the real test: "we change one input, you rerun the affected
+  steps". So every step reads a fixed list of input files and writes exactly one
+  output file. When an input changes, a dependency table in the README tells
+  you which steps to rerun, and the rest stay as they are.
+
+  Steps
+
+  #: 1
+  Step: Data analysis
+  Reads: screenings.csv, data/README.md
+  Writes: scripts/analyze.py → outputs/01-data-analysis.md
+  Who: data-analyst subagent
+  ────────────────────────────────────────
+  #: 2
+  Step: Qual evidence
+  Reads: interviews, survey, journey
+  Writes: outputs/02-qual-evidence.md (tagged evidence table + contradictions)
+  Who: qual-researcher subagent
+  ────────────────────────────────────────
+  #: 3
+  Step: Insight synthesis
+  Reads: 01, 02, constraints
+  Writes: outputs/03-insights.md + 2–3 candidate framings
+  Who: main session
+  ────────────────────────────────────────
+  #:
+  Step: ⏸ CP1: you choose the framing
+  Reads:
+  Writes:
+  Who:
+  ────────────────────────────────────────
+  #: 4
+  Step: Decision memo
+  Reads: 03, your CP1 choice, constraints
+  Writes: outputs/04-decision-memo.md
+  Who: main session + memo skill
+  ────────────────────────────────────────
+  #:
+  Step: ⏸ CP2: you sign off on recommendation, cut list, metric
+  Reads:
+  Writes:
+  Who:
+  ────────────────────────────────────────
+  #: 5
+  Step: Prototype + mail flow
+  Reads: 04, journey, constraints
+  Writes: outputs/05-prototype-spec.md (screens + every e-mail, full copy) →
+  built in Claude Design
+  Who: main session, then you
+
+  Steps 1 and 2 are independent of each other, so they run in parallel.
+
+  What a changed input triggers: constraints.md → 3, 4, 5 · CSV → 1, 3, 4, 5 ·
+  an interview or the survey → 2, 3, 4, 5.
+
+  Why subagents, and only three
+
+  - data-analyst and qual-researcher: each gets a fresh context with only its
+    own inputs. The qual researcher doesn't see the numbers, so it can't bend
+    quotes to fit them, and vice versa. Step 3 is where the two meet,
+    deliberately.
+  - reviewer: a red-team check that has never seen the drafting. It gets the
+    output file plus the inputs and nothing else. Reviewing in the same context
+    that wrote the draft mostly confirms the draft.
+  - Steps 3–5 stay in the main session, because that's where your checkpoint
+    answers live.
+
+  Self-checks: two kinds
+
+  1. Deterministic (scripts/check_outputs.py, run after every step). These are
+     cheap and can't be talked around:
+     - Every number in 03/04 must appear in 01-data-analysis.md. This enforces
+       "numbers only from the script".
+     - Memo ≤ 600 words.
+     - Source tags present.
+     - No fear phrases in customer copy.
+     - No VERDICT.md written by Claude.
+  2. Judgement (the reviewer agent, before each checkpoint). Claude fixes the
+     blocking findings itself and shows you the rest. That way you only spend
+     checkpoint time on decisions, not on catching errors.
+
+  Two checkpoints only
+
+  CP1 (which problem do we frame) and CP2 (sign-off). These are the two places
+  where a wrong turn is expensive and where the decision really is yours.
+  Everything else is checked automatically. A third stop after the data analysis
+  would be possible, but I'd rather the reviewer catch analysis errors.
+
+  Decisions for you
+
+  1. The prototype. Claude Code can't drive Claude Design directly. I'd have
+     step 5 produce a complete spec (screens, every e-mail with full copy, the
+     consent/no-consent variants, the non-German example) that you paste into
+     Claude Design. The handoff stays visible and the copy stays checked. The
+     alternative is a clickable HTML prototype built here, but the brief
+     explicitly says Claude Design.
+  2. The workflow format. I'd use one skill, run-case, which you can call with a
+     step number (/run-case 3 reruns from step 3 onwards), plus a decision-memo
+     skill holding the 1-page template. Or should the workflow just be a
+     section in CLAUDE.md? The skill is easier to rerun live.
+  3. A third checkpoint after step 1? I'd say no (see above), but it's your
+     call.
+
+❯ 1. ok 2. ok 3. I'd like you to walk me through after the data analysis, so I
+  understand what you did, why you did it and what you found. In the 2nd run
+  that is planned, I need a full auto mode with no checkpoints
+
+⏺ Got it, that's a good split. The workflow gets two modes:
+
+  - Interactive (this run): a walkthrough pause after step 1 (just explanation,
+    not a decision), then CP1 and CP2 with you.
+  - Auto (the live rerun): no stops. At each checkpoint Claude decides itself
+    and logs the options, its choice and its reasoning in
+    outputs/CHECKPOINTS.md. Every output is stamped "auto, not signed off".
+    There's one rule that makes auto mode trustworthy: your interactive
+    decisions become defaults. If you picked framing B at CP1 today, the auto
+    rerun keeps B unless the changed input invalidates it, and then it has to
+    say why.
+
+  One more thing I'm adding for the rerun: check_outputs.py records a
+  fingerprint of each step's inputs. After they change a file, it tells you
+  which steps are now out of date, so you don't have to work it out live.
+
+  Writing the setup files now.
+
+⏺ Write(~/gits/mirantus-case-2nd-run/.claude/agents/data-analyst.md)
+  ⎿  Wrote 48 lines to
+     ~/gits/mirantus-case-2nd-run/.claude/agents/data-analyst.md
+      1 ---
+      3 description: Writes, extends and runs scripts/analyze.py on data/
+        screenings.csv, and interprets its output. Use for step 1 of the
+        Mirantus case and for any quantitative question.
+      5 ---
+      6
+        CLAUDE.md` first; its evidence
+      8 rules are binding. Your inputs are `data/screenings.csv` and `dat
+        a/README.md` only. Do not read
+         happens separately, on purpose.
+     … +62 lines (ctrl+o to expand)
+
+⏺ Write(~/gits/mirantus-case-2nd-run/.claude/agents/qual-researcher.md)
+  ⎿  Wrote 28 lines to
+     ~/gits/mirantus-case-2nd-run/.claude/agents/qual-researcher.md
+       1 ---
+       3 description: Turns the interviews, the optician survey and the c
+         ustomer journey into a tagged evidence table with contradictions
+       4 tools: Read, Write, Grep, Glob
+       6
+       7 You are the qualitative researcher on the Mirantus return-rate c
+       8 evidence rules are binding. Your inputs are `data/interviews/*`,
+          `data/optician-survey.md` and
+          any file in `outputs/` other than
+         nt to fit them.
+     … +35 lines (ctrl+o to expand)
+
+⏺ Write(~/gits/mirantus-case-2nd-run/.claude/agents/reviewer.md)
+  ⎿  Wrote 30 lines to
+     ~/gits/mirantus-case-2nd-run/.claude/agents/reviewer.md
+      1 ---
+      3 description: Independent red-team review of one Mirantus case out
+        put (insights, decision memo or prototype spec) against the input
+        s and constraints. Has not seen the drafting. Use before every ch
+      4 tools: Read, Grep, Glob, Bash
+      5 ---
+      7 You review one output of the Mirantus return-rate case. You did n
+        ot write it and you have not
+      8 seen how it was drafted; judge only what is on the page against t
+      9 files.
+     … +37 lines (ctrl+o to expand)
+
+⏺ Now the two skills: the workflow (run-case) and the memo template.
+
+⏺ Write(~/gits/mirantus-case-2nd-run/.claude/skills/run-case/SKILL.md)  ⎿  Wrote 101 lines to
+     ~/gits/mirantus-case-2nd-run/.claude/skills/run-case/SKILL.md
+      1 ---
+      2 name: run-case
+        -rate case. Arguments are an optional start step (1-5, default 1)
+         and an optional mode (auto). Example "/run-case 3 auto".
+      4 ---
+      6 # Run the Mirantus case
+      7
+      8 Arguments: `$ARGUMENTS`. The first number is the step to start fr
+      9 step runs too. The word `auto` selects auto mode; otherwise the m
+        ode is interactive.
+     … +135 lines (ctrl+o to expand)
+
+⏺ Write(~/gits/mirantus-case-2nd-run/.claude/skills/decision-memo/SKILL.md)
+  ⎿  Wrote 53 lines to
+     ~/gits/mirantus-case-2nd-run/.claude/skills/decision-memo/SKILL.md
+       1 ---
+       3 description: Template and rules for the one-page Mirantus decisi
+         on memo (outputs/04-decision-memo.md). Use when drafting or revi
+       4 ---
+       5
+       7
+       8 Max. 1 page: about 500 words, hard limit 600 (checked by `script
+       9 claim is tagged. Every number comes from `outputs/01-data-analys
+         is.md`; a target is a decision, not
+         s not seen the analysis.
+     … +58 lines (ctrl+o to expand)
+
+⏺ Now the deterministic checker. These are the rules that shouldn't depend on
+  Claude's judgement.
+
+⏺ Write(~/gits/mirantus-case-2nd-run/scripts/check_outputs.py)
+  ⎿  Wrote 214 lines to
+     ~/gits/mirantus-case-2nd-run/scripts/check_outputs.py
+       1 #!/usr/bin/env python3
+         ess tracking.
+       3
+       4     python3 scripts/check_outputs.py            check every outp
+       5     python3 scripts/check_outputs.py --stale    list steps whose
+          inputs changed since last run
+         inputs as the current state
+       7
+       8 Exit code 1 if any check fails.
+      10 import glob
+     … +240 lines (ctrl+o to expand)
+
+⏺ Before I rely on the checker, I'll test it on a throwaway copy of the repo
+  with deliberately broken outputs:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The tag, section, fear, and staleness checks passed, but the checker missed a
+  planted error — the interpretation file's "+5.0pp" claim isn't actually in the
+  analysis. I'll dig into why that slipped through.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Confirmed it's a genuine design flaw: lines with [TARGET] were exempted
+  entirely, letting any other number on that line slip through unchecked. I'll
+  tighten the exemption so it only applies to the specific number the tag
+  follows.
+
+⏺ Update(~/gits/mirantus-case-2nd-run/scripts/check_outputs.py)
+  ⎿  Added 15 lines, removed 5 lines
+      131      return s.replace(" ", " ").replace(" %", "%").replace(" pp
+           ", "pp")
+      132  
+      133  
+      134 +NUMBER = re.compile(r"\d+(?:\.\d+)?(?:%|pp)|\bn\s?=\s?[\d,]+")
+      135 +EXEMPT = re.compile(r"\[(TARGET|ASSUMPTION)\]")               
+      136 +                                                              
+      137 +                                                              
+      138  def numbers(body):
+      135 -    """Rates, percentage-point differences and n= counts: the 
+          -numbers that must be sourced."""                              
+      139 +    """Rates, percentage-point differences and n= counts: the 
+          +numbers that must be sourced.                                 
+      140 +                                                              
+      141 +    A number is exempt only if [TARGET] or [ASSUMPTION] follow
+          +s it before the next number.                                  
+      142 +    """                                                       
+      143      found = []
+      144      for line in normalise(body).splitlines():
+      138 -        if "[TARGET]" in line or "[ASSUMPTION]" in line:      
+      139 -            continue                                          
+      140 -        found += re.findall(r"\d+(?:\.\d+)?(?:%|pp)", line)   
+      141 -        found += [f"n={n}" for n in re.findall(r"\bn\s?=\s?([\
+          -d,]+)", line)]                                                
+      145 +        matches = list(NUMBER.finditer(line))                 
+      146 +        for i, m in enumerate(matches):                       
+      147 +            end = matches[i + 1].start() if i + 1 < len(matche
+          +s) else len(line)                                             
+      148 +            if EXEMPT.search(line, m.end(), end):             
+      149 +                continue                                      
+      150 +            num = m.group()                                   
+      151 +            found.append("n=" + re.sub(r"\D", "", num) if num.
+          +startswith("n") else num)                                     
+      152      return found
+      153  
+      154  
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ It's working correctly now—12.4% and n=1234 match despite formatting
+  differences, [TARGET]/[ASSUMPTION] values are exempted, and fabricated numbers
+  like 5.0pp and n=999 are flagged. Next I'll wire this into CLAUDE.md and
+  write the README.
+
+⏺ Update(~/gits/mirantus-case-2nd-run/CLAUDE.md)
+  ⎿  Error editing file
+
+⏺ Update(~/gits/mirantus-case-2nd-run/CLAUDE.md)
+  ⎿  Added 20 lines, removed 2 lines
+       89  - Never invent data, quotes, people or numbers.
+       90  - Never show customer-facing copy that has not been checked ag
+           ainst `data/constraints.md`.
+       91  - Never recommend more than one thing as "the recommendation";
+            alternatives go in the cut list.
+       92 -- Never move past a checkpoint without Simon's answer.        
+       92 +- Never move past a checkpoint without Simon's answer in inter
+          +active mode, or without logging                               
+       93 +  the decision in auto mode.                                  
+       94  - Never write `VERDICT.md`. Simon writes his verdict himself.
+       95  
+       96  ## How the run works
+       97  
+       97 -_To be defined in step 2 (run design): steps, subagents, self-
+          -checks and checkpoints._                                      
+       98 +The workflow is the `run-case` skill (`/run-case [step] [auto]
+          +`); the README explains how to                                
+       99 +rerun. In short:                                              
+      100 +                                                              
+      101 +| Step | Output | Done by |                                   
+      102 +|---|---|---|                                                 
+      103 +| 1 Data analysis | `outputs/01-data-analysis.md`, `01-data-in
+          +terpretation.md` | `data-analyst` subagent |                  
+      104 +| 2 Qualitative evidence | `outputs/02-qual-evidence.md` | `qu
+          +al-researcher` subagent |                                     
+      105 +| 3 Insight synthesis + framings | `outputs/03-insights.md` | 
+          +main session |                                                
+      106 +| 4 Decision memo | `outputs/04-decision-memo.md` | main sessi
+          +on, `decision-memo` skill |                                   
+      107 +| 5 Prototype and mail flow | `outputs/05-prototype-spec.md` →
+          + Claude Design | main session |                               
+      108 +                                                              
+      109 +- **Interactive mode** (default): walkthrough of the analysis 
+          +after steps 1–2; **CP1** after                                
+      110 +  step 3 (which framing); **CP2** after step 4 (sign off recom
+          +mendation, cut list, metric). Ask                             
+      111 +  with AskUserQuestion.                                       
+      112 +- **Auto mode**: no stops. Decisions at CP1 and CP2 are made b
+          +y Claude, reusing Simon's earlier                             
+      113 +  decisions where the inputs still support them, and logged in
+          + `outputs/CHECKPOINTS.md`.                                    
+      114 +- **Self-checks, in both modes:** after every step run `python
+          +3 scripts/check_outputs.py` and fix                           
+      115 +  every failure. Before each checkpoint, run the `reviewer` su
+          +bagent and fix its BLOCKING findings.                         
+
+⏺ Write(~/gits/mirantus-case-2nd-run/README.md)
+  ⎿  Wrote 57 lines to ~/gits/mirantus-case-2nd-run/README.md
+       1 # Mirantus product case: making return screenings a habit
+       2
+       3 My submission for the [Mirantus product case study](CASE.md). Cl
+       4 from the setup in this repository; I judge it at fixed checkpoin
+         ts. All data in `data/` is
+       5 synthetic and unchanged from the case.
+       6
+       8
+       9 | Path | What |
+      10 |---|---|
+     … +67 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Update(~/gits/mirantus-case-2nd-run/CLAUDE.md)
+  ⎿  Added 2 lines, removed 1 line
+      44  ## Evidence rules
+      45  
+      46  - **Tag every claim with its source:** `[CSV]`, `[INT-01]`…`[IN
+          T-04]`, `[SURVEY-n]` (answer
+      47 -  number), `[JOURNEY]`, `[CONSTRAINTS]`. A claim without a sour
+         -ce is tagged `[ASSUMPTION]`.                                   
+      47 +  number), `[JOURNEY]`, `[CONSTRAINTS]`. A claim without a sour
+         +ce is tagged `[ASSUMPTION]`; a                                 
+      48 +  target we set is a decision, not data, and is tagged `[TARGET
+         +]`.                                                            
+      49  - **Numbers come only from the analysis output** written by the
+           analysis script. Never compute
+      50    or type a number in prose. If a number is missing, extend the
+           script and rerun it.
+      51  - **Unequal follow-up time (right-censoring).** First screening
+          s span 2025; the export is from
+
+⏺ The setup is written but not committed yet, so you can review it first. Here's
+  what each file does and the reasoning you might want to challenge:
+
+  File: .claude/skills/run-case/SKILL.md
+  (../mirantus-case-2nd-run/.claude/skills/run-case/SKILL.md)
+  Purpose: The workflow: 5 steps, the walkthrough pause, CP1/CP2, the auto-mode
+  rules
+  ────────────────────────────────────────
+  File: .claude/skills/decision-memo/SKILL.md
+  (../mirantus-case-2nd-run/.claude/skills/decision-memo/SKILL.md)
+  Purpose: The memo template. The metric has 6 required fields (name,
+  definition,
+  cohort, window, baseline, target)
+  ────────────────────────────────────────
+  File: .claude/agents/data-analyst.md
+  (../mirantus-case-2nd-run/.claude/agents/data-analyst.md)
+  Purpose: Writes analyze.py (standard library only, so it runs anywhere live).
+  Lists what the analysis must cover, not what it should find
+  ────────────────────────────────────────
+  File: .claude/agents/qual-researcher.md
+  (../mirantus-case-2nd-run/.claude/agents/qual-researcher.md)
+  Purpose: Evidence table with verbatim quotes. Not allowed to read the CSV or
+  the numbers
+  ────────────────────────────────────────
+  File: .claude/agents/reviewer.md
+  (../mirantus-case-2nd-run/.claude/agents/reviewer.md)
+  Purpose: Red-team check. Read-only, no edits, findings marked BLOCKING/SHOULD,
+
+  no praise
+  ────────────────────────────────────────
+  File: scripts/check_outputs.py
+  (../mirantus-case-2nd-run/scripts/check_outputs.py)
+  Purpose: Deterministic checks + --stale for the live rerun
+  ────────────────────────────────────────
+  File: README.md (../mirantus-case-2nd-run/README.md), CLAUDE.md
+  (../mirantus-case-2nd-run/CLAUDE.md)
+  Purpose: How to rerun. The run section in CLAUDE.md is now filled in
+
+  Design choices worth your scrutiny:
+
+  - The data analyst gets a list of questions to cover, not hypotheses to test.
+    Coverage includes "reach": how many customers each lever could legally
+    reach. That feeds directly into sizing your one recommendation.
+  - Auto mode's decision order when no earlier decision of yours applies: passes
+    the constraints, then strongest evidence, then fits the squad, then the
+    size of the gap. That order is a value judgement. Constraints first is
+    fixed, but you might rank "biggest gap" above "strongest evidence".
+  - The prototype is a spec. Claude writes the screens and all copy; you paste
+    it into Claude Design and drop the link into the repo. That's a manual step
+    in the rerun too.
+
+  The checker test found a real bug I'd have shipped: one [TARGET] tag exempted
+  the whole line from the "numbers must come from the analysis" check. That's
+  fixed and retested. The staleness check correctly reported "constraints
+  changed → rerun steps 3–5".
+
+  Questions or changes? Otherwise I'll commit and start the run with steps 1 and
+  2 in parallel, then stop for your analysis walkthrough.
+
+❯ why does the analyst get questions to cover and not hypotheses?
+
+⏺ There are three reasons, and one real downside you should weigh.
+
+  Why questions:
+
+  1. Anchoring. Any hypotheses I'd write now would come from what I've already
+     read in the interviews, e.g. "phone follow-up drives returns" or "opening
+     the report predicts return". An analyst handed "test whether X" tends to
+     find X: it picks the cut that confirms it and stops looking. That's the
+     same reason the analyst isn't allowed to read the interviews. Data and qual
+     are meant to arrive at step 3 independently, so that where they agree it
+     means something, and where they disagree it shows up as a contradiction.
+  2. The live rerun. If they change the CSV, hypotheses written for today's data
+     may simply stop fitting. A coverage list (window, segments, confounders,
+     reach, what the data can't show) stays valid whatever the data says.
+  3. It isn't quite hypothesis-free. The list already holds my judgement about
+     what matters: which confounders to cross-check (follow-up × location type,
+     consent × location type), and "reach", because a recommendation that can
+     legally reach 20% of customers is a different decision from one that
+     reaches 80%.
+
+  The downside: an open list invites fishing. Seven segment variables give
+  dozens of cells, and some will look striking by chance. Hypotheses would force
+  the analysis to be falsifiable and focused.
+
+  A middle path I'd recommend: the analyst writes down its own expectations
+  before running the script ("I expect X, because Y"), then reports which held
+  and which didn't. That's lightweight pre-registration: it gets the
+  falsifiability without me planting the hypotheses. The second half of the loop
+  already exists: in step 3, if a mechanism from the interviews needs a number
+  the analysis doesn't have, CLAUDE.md requires extending the script, so the
+  qual hypotheses do get tested, just after both sides have looked
+  independently.
+
+  Shall I add the pre-registration line to the analyst's instructions?
+
+❯ yes, I love the idea that the analysts pre-generations expectations or
+  questions before looking at the data
+
+⏺ I'll make the expectations a separate file that the analyst writes first,
+  before it opens the data. If they sat inside the interpretation, which gets
+  written after the analysis, they could quietly be revised after the fact. A
+  separate, earlier file makes that visible.
+
+⏺ Update(~/gits/mirantus-case-2nd-run/.claude/agents/data-analyst.md)
+  ⎿  Added 5 lines
+      10  
+      11  ## What you produce
+      12  
+      13 +0. `outputs/01-expectations.md`, **first, before you read any d
+         +ata row or run any script.** You                               
+      14 +   may read `data/README.md` and the CSV header line only. Writ
+         +e 5–10 expectations, each as "I                                
+      15 +   expect … because …", and the questions you most want the dat
+         +a to answer. Never edit this file                              
+      16 +   after you have seen the data; if this is a rerun and an earl
+         +ier version exists, keep it and                                
+      17 +   add a dated section below it.                               
+      18  1. `scripts/analyze.py`: plain Python 3 standard library (csv, 
+          datetime, collections), no
+      19     pandas, so it runs anywhere. It writes `outputs/01-data-anal
+          ysis.md`. Every number anyone
+      20     uses later comes from this file, so if a question needs a nu
+          mber, the script must print it.
+
+⏺ Update(~/gits/mirantus-case-2nd-run/.claude/agents/data-analyst.md)
+  ⎿  Added 5 lines, removed 1 line
+      45  
+      46  ## Interpretation file
+      47  
+      48 -Per finding: what the number says, what it does not say (confou
+         -nders, small n), and how                                       
+      48 +Start with a section `## Expectations vs. findings`: one row pe
+         +r expectation from                                             
+      49 +`01-expectations.md`, whether it held, was refuted or could not
+         + be tested, and the evidence. A                                
+      50 +refuted expectation is a finding, not a failure; do not soften 
+         +it.                                                            
+      51 +                                                               
+      52 +Then, per finding: what the number says, what it does not say (
+         +confounders, small n), and how                                 
+      53  confident you are. End with a short list of questions the data 
+          cannot answer. Write
+      54  "associated with", never "causes".
+      55  
+
+⏺ Update(~/gits/mirantus-case-2nd-run/scripts/check_outputs.py)
+  ⎿  Added 7 lines
+      179              else:
+      180                  check_numbers(path, body, analysis)
+      181  
+      182 +    interpretation = text(INTERPRETATION)                     
+      183 +    if interpretation is not None:                            
+      184 +        if not EXPECTATIONS.exists():                         
+      185 +            fail("01-data-interpretation.md exists but 01-expe
+          +ctations.md does not")                                        
+      186 +        if "## Expectations vs. findings" not in interpretatio
+          +n:                                                            
+      187 +            fail("01-data-interpretation.md: missing section '
+          +## Expectations vs. findings'")                               
+      188 +                                                              
+      189      insights = text(INSIGHTS)
+      190      if insights is not None:
+      191          sections = re.split(r"^## ", insights, flags=re.M)
+
+⏺ Update(~/gits/mirantus-case-2nd-run/scripts/check_outputs.py)
+  ⎿  Added 1 line
+      18  OUT = ROOT / "outputs"
+      19  MANIFEST = OUT / ".manifest.json"
+      20  
+      21 +EXPECTATIONS = OUT / "01-expectations.md"                      
+      22  ANALYSIS = OUT / "01-data-analysis.md"
+      23  INTERPRETATION = OUT / "01-data-interpretation.md"
+      24  QUAL = OUT / "02-qual-evidence.md"
+
+⏺ Update(~/gits/mirantus-case-2nd-run/.claude/skills/run-case/SKILL.md)
+  ⎿  Added 3 lines, removed 2 lines
+      21  
+      22  ## Steps
+      23  
+      24 -**Step 1: data analysis.** Run the `data-analyst` subagent. Out
+         -put: `outputs/01-data-analysis.md`                             
+      25 -(written by `scripts/analyze.py`) and `outputs/01-data-interpre
+         -tation.md`.                                                    
+      24 +**Step 1: data analysis.** Run the `data-analyst` subagent. Out
+         +put: `outputs/01-expectations.md`                              
+      25 +(written before it looks at the data), `outputs/01-data-analysi
+         +s.md` (written by                                              
+      26 +`scripts/analyze.py`) and `outputs/01-data-interpretation.md`. 
+      27  
+      28  **Step 2: qualitative evidence.** Run the `qual-researcher` sub
+          agent. Output:
+      29  `outputs/02-qual-evidence.md`. Steps 1 and 2 are independent: w
+          hen both run, start them in
+
+⏺ I'll also add expectations-vs-findings to the walkthrough, since that's the
+  most instructive part for you. Then I'll test and commit.
+⏺ Update(~/gits/mirantus-case-2nd-run/.claude/skills/run-case/SKILL.md)
+  ⎿  Added 2 lines, removed 2 lines
+      30  parallel.
+      31  
+      32  *Interactive mode only: analysis walkthrough.* After steps 1 an
+          d 2, stop and walk Simon through
+      33 -the analysis: what was done and why (cohort, window, data-quali
+         -ty handling), the main findings                                
+      34 -with n, and what the data cannot show. Wait for his questions b
+         -efore continuing. No decision is                               
+      33 +the analysis: what was done and why (cohort, window, data-quali
+         +ty handling), which expectations                               
+      34 +held and which were refuted, the main findings with n, and what
+         + the data cannot show. Wait for his questions before continuing
+         +. No decision is                                               
+      35  needed here.
+      36  
+      37  **Step 3: insight synthesis.** Write `outputs/03-insights.md` f
+          rom 01, 02 and the constraints:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've added the pre-registration and committed it (ee57db2):
+
+  - data-analyst.md (../mirantus-case-2nd-run/.claude/agents/data-analyst.md):
+    the analyst first writes outputs/01-expectations.md as "I expect … because
+    …", plus its open questions. Before that it may read only the data
+    dictionary and the CSV header line. It must not edit that file once it has
+    seen the data. On a rerun it adds a dated section instead of rewriting.
+  - The interpretation now opens with "Expectations vs. findings": held /
+    refuted / not testable. It also says outright that a refuted expectation
+    counts as a finding and shouldn't be softened.
+  - The walkthrough after step 1 now covers which expectations held.
+  - The checker fails if the interpretation exists without the expectations file
+    or without that section. I tested both cases.
+
+  Before we start the run, one thing matters. This chat session runs in the old
+  repo folder, mirantus-product-case. The subagents and /run-case I can call
+  from here are the old run's versions, not the ones we just wrote. Running from
+  here would quietly mix the two setups. It would also put the run in a
+  transcript that mostly shows us building the setup.
+
+  My recommendation: open a new Claude Code session in
+  ~/gits/mirantus-case-2nd-run and type /run-case there. It runs in interactive
+  mode by default, so it will:
+  1. run the analyst and the qual researcher in parallel,
+  2. stop for your analysis walkthrough,
+  3. then go on to CP1.
+
+  For the submission, export both transcripts: this one shows how you built and
+  argued the setup, the new one shows the run. The README can link to both.
+
+  Shall I add a transcripts/ folder and a line about it to the README now, or
+  leave that until the end?
+
+❯ you can create the folder, I will switch to the new folder
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've created the folder and committed it (4857096). transcripts/README.md
+  (../mirantus-case-2nd-run/transcripts/README.md) names the two files you'll
+  export, 01-setup-session.txt (this session) and 02-run-session.txt (the run).
+  The main README now has a row for the folder.
+
+  In the new session:
+
+  1. cd ~/gits/mirantus-case-2nd-run, start Claude Code, then type /run-case.
+  2. It first runs the stale check. Every step will show as "never recorded",
+     which is expected on a first run.
+  3. The analyst and the qual researcher then run in parallel, and it stops for
+     your analysis walkthrough.
+
+  Before you close this session, run /export and save the file as
+  transcripts/01-setup-session.txt. If you come back here later to keep working
+  on the setup, export at the very end instead.
