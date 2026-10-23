@@ -16,6 +16,7 @@ synthetic and unchanged from the case.
 | `scripts/check_outputs.py` | Deterministic checks and staleness tracking |
 | `data/` | Case inputs. Never edited by Claude |
 | `outputs/` | What the run produced, plus `CHECKPOINTS.md` (decisions taken) |
+| `transcripts/` | Exported Claude Code sessions: building the setup, and the run |
 
 ## How to rerun
 
